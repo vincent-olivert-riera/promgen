@@ -14,6 +14,8 @@
 build
 coverage.xml
 dist
+primevue-gen/node_modules
+package-lock.json
 
 # Prometheus/Docker ignores
 docker/promgen.json

@@ -163,3 +163,12 @@ clean:
 .PHONY: changelog
 changelog:
 	git log --color=always --first-parent --pretty='format:%s|%Cgreen%d%Creset' | column -ts '|' | less "$(lessopts)"
+
+.PHONY: primevue
+primevue: primevue-gen/node_modules promgen/static/primevue/main.css promgen/static/primevue/main.js
+
+primevue-gen/node_modules: primevue-gen/package.json
+	cd primevue-gen && npm i --no-package-lock
+
+promgen/static/primevue/main.css promgen/static/primevue/main.js: primevue-gen/build.js primevue-gen/src/main.js
+	cd primevue-gen && npm run build
