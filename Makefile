@@ -113,7 +113,7 @@ migrate: $(APP_BIN)
 
 .PHONY:	run
 ## Django: Run development server
-run: migrate
+run: migrate primevue
 	$(APP_BIN) runserver
 
 .PHONY: shell
