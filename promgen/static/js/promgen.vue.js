@@ -39,6 +39,32 @@ const silenceStore = Vue.reactive({
     },
 });
 
+const silenceTableStore = Vue.reactive({
+    state: {
+        show: false,
+        labels: []
+    },
+    addFilterLabel(label) {
+        if (!this.state.labels.includes(label)) {
+            this.state.labels.push(label);
+        } else {
+            console.log(`Label "${label}" already exists.`);
+        }
+    },
+    removeFilterLabel(label) {
+        const index = this.state.labels.indexOf(label);
+        if (index > -1) {
+            this.state.labels.splice(index, 1);
+        }
+    },
+    showModal() {
+        this.state.show = true;
+    },
+    hideModal() {
+        this.state.show = false;
+    },
+});
+
 const exporterTestResultStore = Vue.reactive({
     results: {},
     addResult(url, statusCode) {
@@ -82,6 +108,9 @@ const app = Vue.createApp({
         silenceSelectedHosts(event) {
             this.setSilenceLabels(event.target.dataset);
             this.addSilenceLabel('instance', this.selectedHosts.join('|'));
+        },
+        openSilenceTableModal() {
+            silenceTableStore.showModal();
         },
         fetchSilences: function () {
             fetch('/proxy/v1/silences')
@@ -305,4 +334,73 @@ app.component('exporter-test', {
                 .catch(error => alert(error))
         }
     }
+});
+
+app.component('silence-table-modal', {
+    template: '#silence-table-modal-template',
+    delimiters: ['[[', ']]'],
+    mixins: [mixins],
+    data: () => ({
+        state: silenceTableStore.state,
+        form: {},
+        store: dataStore
+    }),
+    computed: {
+        globalMessages() {
+            return globalStore.state.messages;
+        },
+        activeSilences() {
+            return this.$root.activeSilences;
+        },
+        filteredSilences() {
+            return this.activeSilences.filter(silence => {
+                return this.state.labels.every(label => 
+                  silence.labels[label] !== undefined
+                );
+              });
+  
+           // TODO: Implement filtering 
+        }
+    },
+    methods: {
+        hideModal() {
+            const modal = $('#silenceTableModal');
+            if (modal.length) {
+                globalStore.setMessages([]);
+                this.form = {};
+                this.state = silenceTableStore.state;
+                modal.modal('hide');
+            }
+        },
+        showModal() {
+            const modal = $('#silenceTableModal');
+            if (modal.length) {
+                modal.on('hidden.bs.modal', function (e) {
+                    silenceTableStore.hideModal();
+                });
+                modal.modal('show');
+            }
+        },
+        addFilterLabel() {
+            if (this.form.label) {
+                silenceTableStore.addFilterLabel(this.form.label);
+                this.form.label = '';
+                this.$forceUpdate();
+              }
+        },
+
+        removeFilterLabel(label) {
+            silenceTableStore.removeFilterLabel(label);
+            this.$forceUpdate();
+          },
+    },
+    watch: {
+        "state.show"(val) {
+            if (val) {
+                this.showModal();
+            } else {
+                this.hideModal();
+            }
+        },
+    },
 });

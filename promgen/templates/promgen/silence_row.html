@@ -1,4 +1,5 @@
 {% load i18n %}
+
 <td class="col-xs-1">[[time(silence.startsAt)]]</td>
 <td class="col-xs-1">[[time(silence.endsAt)]]</td>
 <td class="col-xs-3 text-wrap">
@@ -14,5 +15,5 @@
 <td class="col-xs-3">[[silence.createdBy]]</td>
 
 <td style="col-xs-1">
-    <a @click="expireSilence(silence.id)" class="btn btn-warning btn-xs">{% trans "Expire" %}</a>
+    <a @click="$root.expireSilence(silence.id)" class="btn btn-warning btn-xs">{% translate "Expire" %}</a>
 </td>
