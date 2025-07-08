@@ -355,14 +355,24 @@ const silenceListStore = Vue.reactive({
         show: false,
         labels: []
     },
-    addFilterLabel(label, value) {
-        const existingLabel = this.state.labels.find(item => item.label === label && item.value === value);
+    addFilterLabel(label, value, operator) {
+        const existingLabel = this.state.labels.find(
+          (item) =>
+            item.label === label &&
+            item.value === value &&
+            item.operator === operator,
+        );
         if (!existingLabel) {
-            this.state.labels.push({ label, value });
+            this.state.labels.push({label, value, operator});
         }
     },
-    removeFilterLabel(label, value) {
-        const index = this.state.labels.findIndex(item => item.label === label && item.value === value);
+    removeFilterLabel(label, value, operator) {
+        const index = this.state.labels.findIndex(
+          (item) =>
+            item.label === label &&
+            item.value === value &&
+            item.operator === operator,
+        );
         if (index > -1) {
             this.state.labels.splice(index, 1);
         }
@@ -401,7 +411,8 @@ app.component('silence-list-modal', {
             state: silenceListStore.state,
             form: {
                 label: '',
-                value: ''
+                value: '',
+                operator: '='
             },
             store: dataStore
         };
@@ -425,7 +436,9 @@ app.component('silence-list-modal', {
                 return this.state.labels.every(filterLabel => {
                     return silence.matchers.some(matcher =>
                         matcher.name === filterLabel.label &&
-                        matcher.value === filterLabel.value
+                        matcher.value === filterLabel.value &&
+                        matcher.isEqual === ['=', '=~'].includes(filterLabel.operator) &&
+                        matcher.isRegex === ['=~', '!~'].includes(filterLabel.operator)
                     );
                 });
             });
@@ -439,12 +452,32 @@ app.component('silence-list-modal', {
             });
             return Array.from(labels).sort();
         },
+        filteredOperators() {
+            if (!this.form.label) return [];
+            const operators = new Set();
+            this.filteredSilences.forEach((silence) => {
+                silence.matchers.forEach((matcher) => {
+                    if (matcher.name === this.form.label) {
+                        const op = matcher.isEqual ?
+                            (matcher.isRegex ? "=~" : "=") : (matcher.isRegex ? "!~" : "!=");
+                        operators.add(op);
+                    }
+                });
+            });
+          return ["=", "=~", "!=", "!~"].filter((op) => operators.has(op));
+        },
         filteredValues() {
             if (!this.form.label) return [];
             const values = new Set();
             this.filteredSilences.forEach(silence => {
                 silence.matchers.forEach(matcher => {
-                    if (matcher.name === this.form.label) {
+                    if (
+                        matcher.name === this.form.label &&
+                        (
+                            (matcher.isEqual === ['=', '=~'].includes(this.form.operator)) &&
+                            (matcher.isRegex === ['=~', '!~'].includes(this.form.operator))
+                        )
+                    ) {
                         values.add(matcher.value);
                     }
                 });
@@ -460,6 +493,7 @@ app.component('silence-list-modal', {
                 silenceListStore.state.labels = [];
                 this.form.label = ''; 
                 this.form.value = '';
+                this.form.operator = '=';
                 modal.modal('hide');
             }
         },
@@ -472,21 +506,41 @@ app.component('silence-list-modal', {
                 modal.modal('show');
             }
         },
-        addFilterLabel(label, value) {
-            if (label && value) {
-                if (!this.state.labels.some(item => item.label === label && item.value === value)) {
-                    silenceListStore.addFilterLabel(label, value);
+        addFilterLabel(label, value, operator) {
+            if (label && value && operator) {
+                if (
+                  !this.state.labels.some(
+                    (item) => item.label === label && item.value === value,
+                  )
+                ) {
+                    silenceListStore.addFilterLabel(label, value, operator);
                 }
-            } else if (this.form.label && this.form.value) {
-                if (!this.state.labels.some(item => item.label === this.form.label && item.value === this.form.value)) {
-                    silenceListStore.addFilterLabel(this.form.label, this.form.value);
+            } else if (this.form.label && this.form.value && this.form.operator) {
+                if (
+                  !this.state.labels.some(
+                    (item) =>
+                      item.label === this.form.label &&
+                      item.value === this.form.value &&
+                      item.value === this.form.operator,
+                  )
+                ) {
+                    silenceListStore.addFilterLabel(
+                      this.form.label,
+                      this.form.value,
+                      this.form.operator,
+                    );
                 }
             }
-            this.form.label = '';
-            this.form.value = '';
+            this.form.label = "";
+            this.form.value = "";
+            this.form.operator = "=";
         },
-        removeFilterLabel(label, value) {
-            silenceListStore.removeFilterLabel(label, value);
+        removeFilterLabel(label, value, operator) {
+            silenceListStore.removeFilterLabel(label, value, operator);
+        },
+        updateOperatorAndValueOptions() {
+            this.updateValueOptions();
+            this.form.operator = this.filteredOperators[0];
         },
         updateValueOptions() {
             this.form.value = '';
