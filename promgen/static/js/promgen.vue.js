@@ -186,6 +186,19 @@ app.component("silence-row", {
             default: "info",
         },
     },
+    computed: {
+        operators() {
+            // Return a map of operators based on the matcher's isEqual and isRegex properties.
+            // Key: isEqual_isRegex, Value: the operator
+            return new Map([
+                ['true_false', '='],
+                ['true_true', '=~'],
+                ['false_false', '!='],
+                ['false_true', '!~'],
+            ]);
+        },
+
+    },
 });
 
 app.component('silence-create-modal', {
