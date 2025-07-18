@@ -581,7 +581,7 @@ app.component('silence-list-modal', {
                     }
                 });
             });
-          return ["=", "=~", "!=", "!~"].filter((op) => operators.has(op));
+            return ["=", "=~", "!=", "!~"].filter((op) => operators.has(op));
         },
         filteredValues() {
             if (!this.form.label) return [];
