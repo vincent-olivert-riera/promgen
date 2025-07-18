@@ -29,11 +29,22 @@ const silenceStore = Vue.reactive({
         this.state.labels = { ...labels };
         for (const [key, value] of Object.entries(this.state.labels)) {
             if (!Array.isArray(value)) {
-                this.state.labels[key] = [value, '='];
+                if (value.includes("*")) {
+                    this.state.labels[key] = [value, '=~'];
+                } else {
+                    this.state.labels[key] = [value, '='];
+                }
             }
         }
     },
     addLabel(label, value) {
+        if (Array.isArray(value) && value[1] === undefined) {
+            if (value[0].includes("*")) {
+                value[1] = "=~";
+            } else {
+                value[1] = "=";
+            }
+        }
         this.state.labels[label] = value;
     },
     showModal() {
@@ -80,7 +91,7 @@ const app = Vue.createApp({
         setSilenceDataset(event) {
             this.setSilenceLabels(event.target.dataset);
         },
-        addSilenceLabel(label, value, operator = '=') {
+        addSilenceLabel(label, value, operator) {
             silenceStore.addLabel(label, [value, operator]);
             silenceStore.showModal();
         },
