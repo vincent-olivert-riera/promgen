@@ -288,12 +288,12 @@ def silence(*, labels, duration=None, **kwargs):
             if timezone.is_naive(dt):
                 dt = timezone.make_aware(dt)
             kwargs[key] = dt.isoformat()
-    if "matchers" in kwargs:
-        # We pass matchers as a list if the method is called from ProxySilencesV2
-        kwargs["matchers"] = json.loads(json.dumps(kwargs["matchers"]))
-    else:
-        # If no matchers are provided, it means the method is called from ProxySilences.
-        # In this case, we need to convert labels to matchers
+    # If no matchers are provided, it means the method is called from ProxySilences (V1). In this
+    # case, we need to convert labels to matchers.
+    #
+    # Otherwise, the method is called from ProxySilencesV2 and the matchers are already provided in
+    # the right format, so we don't need to touch them.
+    if not "matchers" in kwargs:
         kwargs["matchers"] = [
             {
                 "name": name,
