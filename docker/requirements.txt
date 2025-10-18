@@ -47,6 +47,7 @@ defusedxml==0.7.1
 django==4.2.11
     # via
     #   django-filter
+    #   django-vite
     #   djangorestframework
     #   promgen (pyproject.toml)
     #   social-auth-app-django
@@ -55,6 +56,8 @@ django-environ==0.10.0
 django-filter==23.2
     # via promgen (pyproject.toml)
 django-guardian==3.0.0
+    # via promgen (pyproject.toml)
+django-vite==3.1.0
     # via promgen (pyproject.toml)
 djangorestframework==3.14.0
     # via promgen (pyproject.toml)
