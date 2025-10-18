@@ -26,6 +26,7 @@ dependencies = [
     "django-environ",
     "django-filter",
     "django-guardian",
+    "django-vite==3.1.0",
     "djangorestframework",
     "kombu",
     "prometheus-client",
